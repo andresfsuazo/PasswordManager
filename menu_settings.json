@@ -1,0 +1,9 @@
+{
+    "cursor blink": 0,
+    "exit time": 5,
+    "menu items": {
+        "Login": {"Enter Username" :  {"Username: ": 0}, "Enter Password": {"Password: ": 1}, "Submit": 2, "Back": "", "Exit": ""},
+        "Create Account": "",
+        "Exit": ""
+    }
+}
