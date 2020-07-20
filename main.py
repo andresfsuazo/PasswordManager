@@ -1,5 +1,5 @@
-import console
 import menu
+import client
 
 def main():
     console_menu = menu.Menu()
@@ -7,5 +7,4 @@ def main():
     console_menu.start_display()
 
 if __name__ == "__main__":
-    #console.main()
     main()

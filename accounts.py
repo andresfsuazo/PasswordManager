@@ -2,6 +2,9 @@ import os
 from utils import *
 from serversim import Keys
 
+"""
+Server Side
+"""
 class Accounts:
     def __init__(self):
         self.keys = Keys()
@@ -18,37 +21,14 @@ class Accounts:
         '''
         Login to an existing account
         '''
-        # Ask user for name and password
-        # Generate key to be used in the program
-
-        # user = input("Enter username: ")
-        # while user not in self.usernames:
-        #     print("User not found!")
-        #     user = input("Enter username: ")
-
         if user not in self.usernames:
             return False
-
-        # pwd = input("Enter password: ")
-        # correct = False
         salt = self.usernames[user]["salt"]
         self.keys.load_universal_key(salt, pwd)
         if self.usernames[user]["password"] == self.keys.get_key():
             self.user = user
             self.password = pwd
             return True
-
-        # while not correct:
-        #     self.keys.load_universal_key(salt, pwd)
-        #     if self.usernames[user]["password"] == self.keys.get_key():
-        #         print("Logged in!")
-        #         self.user = user
-        #         self.password = pwd
-        #         correct = True
-        #     else:
-        #         print("Incorrect Password!")
-        #         pwd = input("Enter password: ")
-
         return False
 
     def create_main(self):

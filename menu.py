@@ -3,14 +3,16 @@ import curses
 import json
 from os import path
 from accounts import Accounts
+from client import Client
 
 class Menu:
+
     def __init__(self):
+        self.client = Client()
         self.menu_items = {}
         self.current_menu = {}
         self.username = ""
         self.password = ""
-        self.account = Accounts()
         self.settings = {'cursor blink': 0, 'exit time': 5, 'menu items': {
                                                                 'Login':{
                                                                     "Get Credentials": "",
@@ -110,8 +112,13 @@ class Menu:
 
             self.print_menu(stdscr, current_row, self.current_menu)
 
-    def submit_credentials(self):
-        logged_in = self.account.log_in(self.username, self.password)
+    def submit_credentials(self, new = False):
+        args = {"user" : self.username, "pwd" : self.password}
+        if new:
+            logged_in = self.client.send_command("new", **args)
+        else:
+            logged_in = self.client.send_command("login", **args)
+
         new_display = {
             "Get Credentials": "",
             "Add Credentials": "",
@@ -134,9 +141,13 @@ class Menu:
         elif id == 2:
             self.submit_credentials()
         elif id == 3:
-            pass
+            self.username = self.get_input(stdscr)
+            self.current_menu = self.menu_items["Create Account"]
         elif id == 4:
-            pass
+            self.password = self.get_input(stdscr, True)
+            self.current_menu = self.menu_items["Create Account"]
+        elif id == 5:
+            self.submit_credentials(True)
         else:
             pass
 
