@@ -8,6 +8,7 @@ from os import path
 from utils import *
 from serversim import Keys
 
+
 class Server:
 
     def __init__(self):
@@ -37,32 +38,25 @@ class Server:
 
     def clientthread(self, conn, addr):
         # sends a message to the client whose user object is conn
-        message = "Connected to password manager"
-        conn.sendall(message.encode())
-
+        # message = "Connected to password manager"
+        # conn.sendall(message.encode())
         while True:
             try:
                 command = conn.recv(2048)
-                print("command = " + command)
+                command = command.decode()
                 if command:
-
-                    """prints the message and address of the 
-                    user who just sent the message on the server 
-                    terminal"""
-                    print
-                    "<" + addr[0] + "> " + command
-
-                    # Calls broadcast function to send message to all
-                    message_to_send = "<" + addr[0] + "> " + command
-                    self.broadcast(message_to_send, conn)
-
+                    execute = command.split("|^|")
+                    args = {execute[i]: execute[i + 1] for i in range(1, len(execute), 2)}
+                    message = self.commands(execute[0], **args)
+                    conn.sendall(message.encode())
                 else:
-                    """message may have no content if the connection 
-                    is broken, in this case we remove the connection"""
+                    print("Empty message sent to server")
                     self.remove(conn, addr[0])
 
-            except:
-                continue
+            except ConnectionError:
+                print("Connection Error")
+                self.remove(conn, addr[0])
+                break
 
     def broadcast(self, message, connection):
         for clients in self.clientList:
@@ -81,8 +75,9 @@ class Server:
 
     def commands(self, cmd, **kwargs):
         if cmd == "login":
-            print("Log In Attempt")
-            self.log_in(kwargs["user"], kwargs["pwd"])
+            validated = self.log_in(kwargs["user"], kwargs["pwd"])
+            print("Log In Attempt: " + kwargs["user"] + " - " + str(validated))
+            return "validated" if validated == True else "invalid"
         elif cmd == "new":
             print("New Account Attempt")
             self.log_in(kwargs["user"], kwargs["pwd"])
@@ -96,8 +91,8 @@ class Server:
         salt = self.accounts[user]["salt"]
         self.keys.load_universal_key(salt, pwd)
         if self.accounts[user]["password"] == self.keys.get_key():
-            #self.user = user
-            #self.password = pwd
+            # self.user = user
+            # self.password = pwd
             return True
         return False
 
@@ -105,17 +100,18 @@ class Server:
         '''
         Create an account for using the password manager
         '''
-        #Create username
+        # Create username
         if user in self.usernames:
             return False
-        #Creat salt
+        # Creat salt
         salt = new_salt()
 
-        #Get key for password
+        # Get key for password
         self.keys.load_universal_key(salt, pwd)
         self.accounts[user] = {"password": self.keys.get_key(), "salt": salt, "accounts": {}}
         self.SaveUsers()
         return True
+
 
 def main():
     server = Server()

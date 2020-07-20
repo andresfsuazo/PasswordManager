@@ -19,8 +19,14 @@ class Client():
         self.server.close()
 
     def send_command(self, cmd, **kwargs):
-        self.server.send(cmd.encode())
+        one = cmd
+        #Send arguments
+        for i in kwargs:
+            one+="|^|"+i
+            one+="|^|"+kwargs[i]
+        self.server.sendall(one.encode())
+        return True if self.receive_response() == "validated" else False
 
-    def recieve_response(self):
+    def receive_response(self):
         message = self.server.recv(2048)
-        print(message)
+        return message.decode()
