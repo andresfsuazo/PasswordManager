@@ -25,7 +25,12 @@ class Client():
             one+="|^|"+i
             one+="|^|"+kwargs[i]
         self.server.sendall(one.encode())
-        return True if self.receive_response() == "validated" else False
+
+        response = self.receive_response()
+        if response != "0" and response != "1":
+            return response
+        else:
+            return True if response == "1" else False
 
     def receive_response(self):
         message = self.server.recv(2048)

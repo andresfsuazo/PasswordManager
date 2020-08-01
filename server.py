@@ -4,6 +4,7 @@ import select
 import sys
 from _thread import *
 import json
+from base64 import b64encode, b64decode
 from os import path
 from utils import *
 from serversim import Keys
@@ -48,10 +49,12 @@ class Server:
                     execute = command.split("|^|")
                     args = {execute[i]: execute[i + 1] for i in range(1, len(execute), 2)}
                     message = self.commands(execute[0], **args)
+                    print("to return = ", message)
                     conn.sendall(message.encode())
                 else:
                     print("Empty message sent to server")
                     self.remove(conn, addr[0])
+                    break
 
             except ConnectionError:
                 print("Connection Error")
@@ -74,13 +77,27 @@ class Server:
             print((addr + " disconnected"))
 
     def commands(self, cmd, **kwargs):
+        validated = False
         if cmd == "login":
             validated = self.log_in(kwargs["user"], kwargs["pwd"])
             print("Log In Attempt: " + kwargs["user"] + " - " + str(validated))
-            return "validated" if validated == True else "invalid"
         elif cmd == "new":
-            print("New Account Attempt")
-            self.log_in(kwargs["user"], kwargs["pwd"])
+            validated = self.create_main(kwargs["user"], kwargs["pwd"])
+            print("New Account: " + kwargs["user"] + " - " + str(validated))
+        elif cmd == "newsub":
+            validated = self.create_sub(kwargs["user"], kwargs["pwd"], kwargs["account"], kwargs["usersub"],
+                                        kwargs["pwdsub"])
+            print("New Sub Attempt: " + kwargs["user"] + " - " + kwargs["account"])
+        elif cmd == "getsub":
+            validated = self.get_sub(kwargs["user"], kwargs["account"], kwargs["pwd"])
+            print("Account Sent: " + kwargs["user"] + " -> " + str(validated))
+            if validated != False: return validated
+
+        print(validated)
+        if validated:
+            return "1"
+        else:
+            return "0"
 
     def log_in(self, user, pwd):
         '''
@@ -89,10 +106,11 @@ class Server:
         if user not in self.accounts:
             return False
         salt = self.accounts[user]["salt"]
-        self.keys.load_universal_key(salt, pwd)
-        if self.accounts[user]["password"] == self.keys.get_key():
-            # self.user = user
-            # self.password = pwd
+        salt = salt.encode()
+        password = self.accounts[user]["password"]
+        password = password.encode()
+        key = self.keys.create_key(salt, pwd)
+        if password == key:
             return True
         return False
 
@@ -100,17 +118,40 @@ class Server:
         '''
         Create an account for using the password manager
         '''
-        # Create username
-        if user in self.usernames:
-            return False
-        # Creat salt
-        salt = new_salt()
-
-        # Get key for password
-        self.keys.load_universal_key(salt, pwd)
-        self.accounts[user] = {"password": self.keys.get_key(), "salt": salt, "accounts": {}}
+        if user in self.accounts: return False  # Check if username available
+        salt = new_salt()  # Create salt
+        key = self.keys.create_key(salt, pwd)  # Get key for password
+        password = key
+        password = password.decode()
+        self.accounts[user] = {"password": password, "salt": salt.decode(), "accounts": {}}
         self.SaveUsers()
         return True
+
+    def create_sub(self, user, pwd, account, usersub, pwdsub):
+        '''
+        Create an account for using the password manager
+        '''
+        account = str(account).lower()
+        if account in self.accounts[user]["accounts"]: return False  # Check if name available
+        salt = new_salt()  # Create salt
+        pwdsub = self.keys.encrypt_account(salt, pwd, pwdsub)
+        self.accounts[user]["accounts"][account] = {"username": usersub, "password": pwdsub.decode()}
+        self.SaveUsers()
+        return True
+
+    def get_sub(self, user, account, pwd):
+        """
+        Retrieve a username and password for a specific site
+        """
+        if account in self.accounts[user]["accounts"]:
+            username = self.accounts[user]["accounts"][account]["username"]
+            password = self.accounts[user]["accounts"][account]["password"]
+
+            # decrypt password
+            password = self.keys.decrypt_account(pwd, password)
+            return username+"|^|"+password.decode()
+        else:
+            return False
 
 
 def main():

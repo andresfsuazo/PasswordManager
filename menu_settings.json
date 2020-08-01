@@ -1,9 +1,21 @@
 {
-    "cursor blink": 0,
-    "exit time": 5,
-    "menu items": {
-        "Login": {"Enter Username" :  {"Username: ": 0}, "Enter Password": {"Password: ": 1}, "Submit": 2, "Back": "", "Exit": ""},
-        "Create Account": {"Enter Username" :  {"Username: ": 3}, "Enter Password": {"Password: ": 4}, "Submit": 5, "Back": "", "Exit": ""},
-        "Exit": ""
+    "terminal mode": 1,
+    "main_menu": {
+        "1": {
+            "Login": "login"
+        },
+        "2": {
+            "Create Account": "createAccount"
+        }
+    },
+    "sub_menu": {
+        "home": {
+            "1": {
+                "Get Credentials": "getAccount"
+            },
+            "2": {
+                "Add Credentials": "addAccount"
+            }
+        }
     }
 }

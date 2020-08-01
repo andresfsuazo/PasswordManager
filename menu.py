@@ -10,7 +10,9 @@ class Menu:
     def __init__(self):
         self.client = Client()
         self.menu_items = {}
+        self.pre_menu = {}
         self.current_menu = {}
+        self.inputs = []
         self.username = ""
         self.password = ""
         self.settings = {'cursor blink': 0, 'exit time': 5, 'menu items': {
@@ -32,6 +34,7 @@ class Menu:
                 json.dump(self.settings, file, indent=4)
 
         self.menu_items = self.settings["menu items"]
+        self.pre_menu = self.menu_items
 
     def print_menu(self, stdscr, selected_row_idx, current):
         stdscr.clear()
@@ -101,11 +104,13 @@ class Menu:
                 if current_row == len(self.current_menu)-1 and self.current_menu[selected_key] == "":
                     k = ord('q')
                 elif selected_key.lower() == "back":
-                    self.current_menu = self.menu_items
+                    self.current_menu = self.pre_menu
                 else:
                     if type(self.current_menu[selected_key]) is dict:
+                        self.pre_menu = self.current_menu
                         self.current_menu = self.current_menu[selected_key]
                     else:
+                        self.pre_menu = self.current_menu
                         self.function_caller(stdscr, self.current_menu[selected_key])
                     current_row = 0;
 
@@ -120,14 +125,41 @@ class Menu:
             logged_in = self.client.send_command("login", **args)
 
         new_display = {
-            "Get Credentials": "",
-            "Add Credentials": "",
+            "Get Credentials": {"Account: ": 7},
+            "Add Credentials": {"Enter Account Name" :  {"Name: ": 8}, "Enter Account Username": {"Username: ": 8}, "Enter Account Password": {"Password: ": 8}, "Submit": 6, "Back": "", "Exit": ""},
             "Back": "",
             "Exit": ""
         }
 
         if logged_in:
+            self.pre_menu = self.current_menu
             self.current_menu = new_display
+        else:
+            self.pre_menu = self.menu_items
+            self.current_menu = self.menu_items
+
+    def create_sub(self, account, usersub, pwdsub):
+        args = {"user": self.username, "pwd" : self.password, "account": account, "usersub": usersub, "pwdsub": pwdsub}
+        logged_in = self.client.send_command("newsub", **args)
+
+
+
+        if logged_in:
+            self.current_menu = {"Success": "", "Back": "", "Exit": ""}
+        else:
+            self.pre_menu = self.current_menu
+            self.current_menu = {"Account already exists!": "", "Back": "", "Exit": ""}
+
+    def get_sub(self, account):
+        args = {"user": self.username, "pwd": self.password, "account": account}
+        response = self.client.send_command("getsub", **args)
+        if response != 0:
+            self.current_menu = {
+                                    "Username": response[1],
+                                    "Password: ": response[3],
+                                    "Back": "",
+                                    "Exit": ""
+                                }
         else:
             self.current_menu = self.menu_items
 
@@ -148,6 +180,15 @@ class Menu:
             self.current_menu = self.menu_items["Create Account"]
         elif id == 5:
             self.submit_credentials(True)
+        elif id == 6:
+            self.create_sub(self.inputs[0], self.inputs[1], self.inputs[2])
+            self.inputs = []
+        elif id == 7:
+            account = self.get_input(stdscr)
+            self.get_sub(account)
+        elif id == 8:
+            self.inputs.append(self.get_input(stdscr))
+            self.current_menu = {"Enter Account Name" :  {"Name: ": 8}, "Enter Account Username": {"Username: ": 8}, "Enter Account Password": {"Password: ": 8}, "Submit": 6, "Back": "", "Exit": ""}
         else:
             pass
 
