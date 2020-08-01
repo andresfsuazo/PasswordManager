@@ -2,7 +2,6 @@ import time
 import curses
 import json
 from os import path
-from accounts import Accounts
 from client import Client
 
 class Menu:

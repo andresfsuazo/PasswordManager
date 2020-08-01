@@ -8,7 +8,6 @@ from client import Client
 def exit_app():
     sys.exit()
 
-
 # define our clear function
 def clear():
     # for windows
@@ -19,12 +18,10 @@ def clear():
     else:
         _ = system('clear')
 
-
 def build_menu(current_menu):
     for key in current_menu:
         print("{}. {}".format(key, single_dict_key(current_menu[key])))
-    print("\n0. Quit")
-
+    print("0. Quit\n")
 
 class TerminalMenu:
     def __init__(self):
@@ -104,6 +101,7 @@ class TerminalMenu:
 
         #Print Resutls line by line
         for i in results: print(i)
+        print("\n")
 
         #Build an empty menu with only exit and back options
         build_menu({"1": {"Back": "back"}})
@@ -152,7 +150,11 @@ class TerminalMenu:
         if logged_in:
             self.sub_menu("home")
         else:
-            self.login();
+            inp = input("Invalid Credentials!\n(q) to go back|any key to try again: ")
+            if inp != "q":
+                self.login();
+            else:
+                self.main_menu()
 
     def createAccount(self):
         self.username = input("Set Username: ")
@@ -170,10 +172,9 @@ class TerminalMenu:
         account = input("Account Name: ")
         args = {"user": self.username, "pwd": self.password, "account": account}
         response = self.client.send_command("getsub", **args)
-        print(response)
-        response = response.split("|^|")
 
         if response:
+            response = response.split("|^|")
             results = [
                 "Account Name: " + account,
                 "Username: " + response[0],

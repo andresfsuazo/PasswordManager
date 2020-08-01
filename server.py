@@ -1,13 +1,10 @@
 # Python program to implement server side of chat room.
 import socket
-import select
-import sys
 from _thread import *
 import json
-from base64 import b64encode, b64decode
 from os import path
 from utils import *
-from serversim import Keys
+from Keys import Keys
 
 
 class Server:
