@@ -1,8 +1,4 @@
-import sys
-from os import path
-import json
 from utils import *
-from client import Client
 from UserInterface import UserInterface
 
 

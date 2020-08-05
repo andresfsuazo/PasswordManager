@@ -1,9 +1,8 @@
 from utils import *
 from UserInterface import UserInterface
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QMessageBox
 import sys
-
 
 class GUI(UserInterface):
 
@@ -13,12 +12,13 @@ class GUI(UserInterface):
         self.window = QMainWindow()
         self.Auth = QtWidgets.QWidget()
         self.Home = QtWidgets.QWidget()
+        self.popup = QtWidgets.QMessageBox()
         self.accountInput = QtWidgets.QLineEdit(self.Home)
         self.browseButton = QtWidgets.QPushButton(self.Home)
         self.accountNameTitle = QtWidgets.QLabel(self.Home)
+        self.usernameInput = QtWidgets.QLineEdit(self.Auth)
         self.passwordInput = QtWidgets.QLineEdit(self.Auth)
         self.loginButton = QtWidgets.QPushButton(self.Auth)
-        self.usernameInput = QtWidgets.QLineEdit(self.Auth)
         self.verticalLayoutWidget_3 = QtWidgets.QWidget(self.Home)
         self.verticalLayoutWidget = QtWidgets.QWidget(self.Home)
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.verticalLayoutWidget_3)
@@ -33,6 +33,8 @@ class GUI(UserInterface):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        self.popup.setWindowTitle("Alert")
+        self.popup.setGeometry(100, 200, 100, 100)
         # -------------------------------------------------------------------------
         MainWindow.resize(671, 436)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -98,6 +100,7 @@ class GUI(UserInterface):
         # Account Name Input
         self.accountInput.setGeometry(QtCore.QRect(150, 100, 341, 31))
         self.accountInput.setObjectName("accountInput")
+        self.accountInput.textChanged.connect(self.clear_labels)
         # -------------------------------------------------------------------------
         # Browse Accounts Button
         self.browseButton.setGeometry(QtCore.QRect(510, 100, 61, 31))
@@ -193,6 +196,14 @@ class GUI(UserInterface):
         self.label_9.setText(_translate("MainWindow", "Account Name"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
 
+    def Popup(self, text, type="warning"):
+        self.popup.setText(text)
+        if type == "warning":
+            self.popup.setIcon(QMessageBox.Warning)
+        elif type == "success":
+            self.popup.setIcon(QMessageBox.Information)
+        self.popup.exec_()
+
     def display_menu(self):
         self.setupUi(self.window)
         self.window.show()
@@ -214,7 +225,7 @@ class GUI(UserInterface):
             self.accountNameTitle.setText(self.username)
         else:
             #Create popup window woth alerts
-            pass
+            self.Popup("Invalid Credentials!")
 
     def create_account(self):
         self.username = self.usernameInput.text()
@@ -226,8 +237,8 @@ class GUI(UserInterface):
         if logged_in != "0":
             self.change_window(1)
         else:
-            # Create popup window woth alerts
-            pass
+            # Create popup window with alerts
+            self.Popup("Username unavailable")
 
     def get_account(self):
         account = self.accountInput.text()
@@ -241,7 +252,7 @@ class GUI(UserInterface):
             self.getPasswordLabel.setText(response[1])
         else:
             #Popup window indicating account not founf
-            pass
+            self.Popup("Account not found!")
 
     def add_account(self):
         validated = False
@@ -253,17 +264,17 @@ class GUI(UserInterface):
 
         if validated:
             # Popup indicating success
-            pass
+            self.Popup("Credentials Saved!", "success")
+            self.clear_labels()
         else:
             # Popup indicating failure
-            pass
+            self.Popup("Account already exists!")
+
         # Clean all labels
+        self.clear_labels()
 
-
-def main():
-    ui = GUI()
-    ui.start_window()
-
-
-if __name__ == "__main__":
-    main()
+    def clear_labels(self):
+        self.getPasswordLabel.clear()
+        self.getUsernameLabel.clear()
+        self.addPasswordInput.clear()
+        self.addUsernameInput.clear()
