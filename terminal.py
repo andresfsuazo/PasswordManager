@@ -1,62 +1,41 @@
 import sys
-from os import system, name, path
+from os import path
 import json
 from utils import *
 from client import Client
+from UserInterface import UserInterface
 
-
-def exit_app():
-    sys.exit()
-
-# define our clear function
-def clear():
-    # for windows
-    if name == 'nt':
-        _ = system('cls')
-
-    # for mac and linux(here, os.name is 'posix')
-    else:
-        _ = system('clear')
 
 def build_menu(current_menu):
     for key in current_menu:
         print("{}. {}".format(key, single_dict_key(current_menu[key])))
     print("0. Quit\n")
 
-class TerminalMenu:
+
+class TerminalMenu(UserInterface):
     def __init__(self):
-        self.client = Client()
+        super().__init__()
         self.mainMenu = {}
         self.current_menu = {}
         self.inputs = []
-        self.username = ""
-        self.password = ""
+        self.mainMenu = {}
         self.settings = {
             "terminal mode": 1,
             'main_menu': {
                 "1": {'Login': 'login'},
-                "2": {'Create Account': 'createAccount'}
+                "2": {'Create Account': 'create_account'}
             },
             'sub_menu': {
                 "home": {
-                    "1": {"Get Credentials": 'getAccount'},
-                    "2": {"Add Credentials": 'addAccount'}
+                    "1": {"Get Credentials": 'get_account'},
+                    "2": {"Add Credentials": 'add_account'}
                 },
             }
         }
 
-    def begin_display(self):
+    def display_menu(self):
         self.set_settings()
         self.main_menu()
-
-    def set_settings(self):
-        if path.exists('menu_settings.json'):
-            self.settings = json.load(open('menu_settings.json'))
-        else:
-            with open("menu_settings.json", "w") as file:
-                json.dump(self.settings, file, indent=4)
-
-        self.mainMenu = self.settings['main_menu']
 
     def call_me(self, arg):
         return getattr(self, arg)()
@@ -79,9 +58,7 @@ class TerminalMenu:
 
     # Sub Menu
     def sub_menu(self, name):
-        '''
-        Build a sub-menu from json file
-        '''
+        """Build a sub-menu from json file"""
         clear()  # Clear terminal window
         print(name.capitalize())  # Title
 
@@ -99,11 +76,11 @@ class TerminalMenu:
     def results_page(self, results):
         clear()
 
-        #Print Resutls line by line
+        # Print Resutls line by line
         for i in results: print(i)
         print("\n")
 
-        #Build an empty menu with only exit and back options
+        # Build an empty menu with only exit and back options
         build_menu({"1": {"Back": "back"}})
 
         while True:
@@ -152,11 +129,11 @@ class TerminalMenu:
         else:
             inp = input("Invalid Credentials!\n(q) to go back|any key to try again: ")
             if inp != "q":
-                self.login();
+                self.login()
             else:
                 self.main_menu()
 
-    def createAccount(self):
+    def create_account(self):
         self.username = input("Set Username: ")
         self.password = input("Set Password: ")
         args = {"user": self.username, "pwd": self.password}
@@ -166,9 +143,9 @@ class TerminalMenu:
         if logged_in != "0":
             self.sub_menu("home")
         else:
-            self.createAccount();
+            self.createAccount()
 
-    def getAccount(self):
+    def get_account(self):
         account = input("Account Name: ")
         args = {"user": self.username, "pwd": self.password, "account": account}
         response = self.client.send_command("getsub", **args)
@@ -188,7 +165,7 @@ class TerminalMenu:
 
         self.results_page(results)
 
-    def addAccount(self):
+    def add_account(self):
         account = input("Account Name: ")
         username = input("Account Username: ")
         pwd = input("Account Password: ")

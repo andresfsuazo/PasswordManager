@@ -1,15 +1,23 @@
-import menu
+import json
+from os import path
 from terminal import TerminalMenu
-import client
+from GUI import GUI
 
-def menumain():
-    console_menu = menu.Menu()
-    console_menu.set_settings()
-    console_menu.start_display()
+def TerminalMain():
+    menu = TerminalMenu()
+    menu.display_menu()
+
+def GUIMain():
+    menu = GUI()
+    menu.display_menu()
 
 def main():
-    menu = TerminalMenu()
-    menu.begin_display()
+    mode = 0
+    if path.exists('menu_settings.json'):
+        settings = json.load(open('menu_settings.json'))
+        mode = settings["interaction mode"]
+    GUIMain() if mode == 0 else TerminalMain()
+
 
 if __name__ == "__main__":
     main()
