@@ -1,11 +1,11 @@
 import sys
 sys.path.append("..")
-from utils import *
-from PasswordManagerClient.UserInterface import UserInterface
+from PM.utils import *
+from PM.PMClient.user_interface import UserInterface
 
 def menu_display(func):
-    def inner():
-        func()
+    def inner(current):
+        func(current)
         print("0. Quit\n")
     return inner
 
@@ -22,7 +22,6 @@ class TerminalMenu(UserInterface):
         self.inputs = []
         self.mainMenu = {}
         self.settings = {
-            "terminal mode": 1,
             'main_menu': {
                 "1": {'Login': 'login'},
                 "2": {'Create Account': 'create_account'}
@@ -36,7 +35,7 @@ class TerminalMenu(UserInterface):
         }
 
     def display_menu(self):
-        self.set_settings()
+        self.mainMenu = self.settings['main_menu']
         self.main_menu()
 
     def call_me(self, arg):

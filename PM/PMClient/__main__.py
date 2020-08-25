@@ -1,16 +1,15 @@
 import json
 from os import path
-from PasswordManagerClient.terminal import TerminalMenu
-from PasswordManagerClient.GUI import GUI
+from PM.PMClient import *
 
 
 def TerminalMain():
-    menu = TerminalMenu()
+    menu = terminal_interface.TerminalMenu()
     menu.display_menu()
 
 
 def GUIMain():
-    menu = GUI()
+    menu = graphical_interface.GUI()
     menu.display_menu()
 
 

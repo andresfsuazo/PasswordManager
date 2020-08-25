@@ -1,5 +1,5 @@
 from os import path
-from PasswordManagerClient.client import Client
+from PM.PMClient.client import Client
 import abc
 import json
 

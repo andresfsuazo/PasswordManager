@@ -1,13 +1,10 @@
 # Python program to implement server side of chat room.
 import socket
-try:
-    import thread
-except ImportError:
-    import _thread as thread
 import json
 from os import path
-from utils import *
-from Keys import Keys
+from .keys import Keys
+from PM.utils import *
+
 
 class Server:
 
@@ -17,7 +14,7 @@ class Server:
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         IP_address = "localhost"
         Port = 8000
-        #Port = 7788
+        # Port = 7788
         # Binds the server to IP and Port
         self.server.bind((IP_address, Port))
         # Set a max of 10 connections
@@ -27,14 +24,14 @@ class Server:
         self.load_users()
 
     def load_users(self):
-        if path.exists('accounts.json'):
-            self.accounts = json.load(open('accounts.json'))
+        if path.exists('PM/PMServer/accounts.json'):
+            self.accounts = json.load(open('PM/PMServer/accounts.json'))
         else:
-            with open("accounts.json", "w") as file:
+            with open("PM/PMServer/accounts.json", "w") as file:
                 json.dump(self.accounts, file, indent=4)
 
     def save_users(self):
-        with open("accounts.json", "w") as file:
+        with open("PM/PMServer/accounts.json", "w") as file:
             json.dump(self.accounts, file, indent=4)
 
     def client_thread(self, conn, addr):
@@ -56,23 +53,24 @@ class Server:
                     self.remove(conn, addr[0])
                     break
 
-            #except ConnectionError
+            # except ConnectionError
             except:
                 print("Connection Error")
                 self.remove(conn, addr[0])
                 break
 
     def broadcast(self, message, connection):
+        """Send a message to all connected clients"""
         for clients in self.clientList:
             if clients != connection:
                 try:
                     clients.send(message)
                 except:
                     clients.close()
-                    # if the link is broken, we remove the client
                     self.remove(clients)
 
     def remove(self, connection, addr):
+        """Remove connected client from server"""
         if connection in self.clientList:
             self.clientList.remove(connection)
             print((addr + " disconnected"))
@@ -101,9 +99,7 @@ class Server:
             return "0"
 
     def log_in(self, user, pwd):
-        '''
-        Login to an existing account
-        '''
+        """Login to an existing account"""
         if user not in self.accounts:
             return False
         salt = self.accounts[user]["salt"]
@@ -111,14 +107,13 @@ class Server:
         password = self.accounts[user]["password"]
         password = password.encode()
         key = self.keys.create_key(salt, pwd)
+
         if password == key:
             return True
         return False
 
     def create_main(self, user, pwd):
-        '''
-        Create an account for using the password manager
-        '''
+        """Create an account for using the password manager"""
         if user in self.accounts: return False  # Check if username available
         salt = new_salt()  # Create salt
         key = self.keys.create_key(salt, pwd)  # Get key for password
@@ -129,9 +124,7 @@ class Server:
         return True
 
     def create_sub(self, user, pwd, account, usersub, pwdsub):
-        '''
-        Create an account for using the password manager
-        '''
+        """Create an account for using the password manager """
         account = str(account).lower()
         if account in self.accounts[user]["accounts"]: return False  # Check if name available
         salt = new_salt()  # Create salt
@@ -141,9 +134,7 @@ class Server:
         return True
 
     def get_sub(self, user, account, pwd):
-        """
-        Retrieve a username and password for a specific site
-        """
+        """Retrieve a username and password for a specific site"""
         if account in self.accounts[user]["accounts"]:
             username = self.accounts[user]["accounts"][account]["username"]
             password = self.accounts[user]["accounts"][account]["password"]
@@ -153,15 +144,3 @@ class Server:
             return username + "|^|" + password.decode()
         else:
             return False
-
-
-def main():
-    server = Server()
-    while True:
-        conn, addr = server.server.accept()
-        server.clientList.append(conn)
-        print(addr[0] + " connected")
-        thread.start_new_thread(server.client_thread, (conn, addr))  # Each connected user represents a thread
-
-if __name__ == '__main__':
-    main()

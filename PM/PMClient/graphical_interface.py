@@ -1,4 +1,4 @@
-from PasswordManagerClient.UserInterface import UserInterface
+from PM.PMClient.user_interface import UserInterface
 from PyQt5 import QtWidgets, QtCore, QtGui
 from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 import sys
@@ -34,7 +34,6 @@ class GUI(UserInterface):
     def setup_UI(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         self.popup.setWindowTitle("Alert")
-        self.popup.setGeometry(100, 200, 100, 100)
         # -------------------------------------------------------------------------
         MainWindow.resize(671, 436)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -196,8 +195,9 @@ class GUI(UserInterface):
         self.label_9.setText(_translate("MainWindow", "Account Name"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
 
-    def popup(self, text, type="warning"):
+    def display_alert(self, text, type="warning"):
         self.popup.setText(text)
+        self.popup.setGeometry(self.get_window_center()[0], self.get_window_center()[1], 100, 100)
         if type == "warning":
             self.popup.setIcon(QMessageBox.Warning)
         elif type == "success":
@@ -208,6 +208,15 @@ class GUI(UserInterface):
         self.setup_UI(self.window)
         self.window.show()
         sys.exit(self.app.exec_())
+
+    def get_window_center(self):
+        """Get windows position and dimensions"""
+        w = self.window.frameGeometry().width()
+        h = self.window.frameGeometry().height()
+        x,y = self.window.pos().x() + w/2, self.window.pos().y() + h/2
+
+
+        return (x,y)
 
     def change_window(self, win_num):
         self.stackedWidget.setCurrentIndex(win_num)
@@ -225,7 +234,7 @@ class GUI(UserInterface):
             self.accountNameTitle.setText(self.username)
         else:
             # Create popup window woth alerts
-            self.popup("Invalid Credentials!")
+            self.display_alert("Invalid Credentials!")
 
     def create_account(self):
         self.username = self.usernameInput.text()
@@ -238,7 +247,7 @@ class GUI(UserInterface):
             self.change_window(1)
         else:
             # Create popup window with alerts
-            self.popup("Username unavailable")
+            self.display_alert("Username unavailable")
 
     def get_account(self):
         account = self.accountInput.text()
@@ -252,7 +261,7 @@ class GUI(UserInterface):
             self.getPasswordLabel.setText(response[1])
         else:
             # Popup window indicating account not founf
-            self.popup("Account not found!")
+            self.display_alert("Account not found!")
 
     def add_account(self):
         validated = False
@@ -265,11 +274,11 @@ class GUI(UserInterface):
 
         if validated:
             # Popup indicating success
-            self.popup("Credentials Saved!", "success")
+            self.display_alert("Credentials Saved!", "success")
             self.clear_labels()
         else:
             # Popup indicating failure
-            self.popup("Account already exists!")
+            self.display_alert("Account already exists!")
 
         # Clean all labels
         self.clear_labels()
