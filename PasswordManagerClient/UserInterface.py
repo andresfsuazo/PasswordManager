@@ -1,5 +1,5 @@
 from os import path
-from client import Client
+from PasswordManagerClient.client import Client
 import abc
 import json
 
@@ -11,12 +11,15 @@ Interface for both terminal use and Graphical Interface
 class UserInterface(metaclass=abc.ABCMeta):
 
     @classmethod
-    def version(self):
+    def version(cls):
         """User interface version"""
         return "1.0"
 
     def __init__(self):
+        self.mainMenu = ""
         self.client = Client()
+        self.settings = {}
+        self.set_settings()
         self.username = ""
         self.password = ""
 
@@ -28,7 +31,10 @@ class UserInterface(metaclass=abc.ABCMeta):
             with open("menu_settings.json", "w") as file:
                 json.dump(self.settings, file, indent=4)
 
+        self.client.Port = self.settings["Port"]
+        self.client.IP_address = self.settings["IP"]
         self.mainMenu = self.settings['main_menu']
+        self.client.connect()
 
     @abc.abstractmethod
     def display_menu(self):

@@ -1,8 +1,8 @@
-from utils import *
-from UserInterface import UserInterface
+from PasswordManagerClient.UserInterface import UserInterface
 from PyQt5 import QtWidgets, QtCore, QtGui
-from PyQt5.QtWidgets import QApplication, QMainWindow, QLabel, QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
 import sys
+
 
 class GUI(UserInterface):
 
@@ -31,7 +31,7 @@ class GUI(UserInterface):
         self.addPasswordInput = QtWidgets.QLineEdit(self.verticalLayoutWidget_3)
         self.newAccountButton = QtWidgets.QPushButton(self.Auth)
 
-    def setupUi(self, MainWindow):
+    def setup_UI(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         self.popup.setWindowTitle("Alert")
         self.popup.setGeometry(100, 200, 100, 100)
@@ -54,7 +54,7 @@ class GUI(UserInterface):
         self.titleLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.titleLabel.setObjectName("titleLabel")
         # -------------------------------------------------------------------------
-        #Username and Password Inputs
+        # Username and Password Inputs
         self.loginButton.setGeometry(QtCore.QRect(230, 220, 221, 61))
         self.loginButton.clicked.connect(self.login)
         self.loginButton.setObjectName("loginButton")
@@ -171,11 +171,11 @@ class GUI(UserInterface):
         MainWindow.setStatusBar(self.statusbar)
         self.menubar.addAction(self.menuFile.menuAction())
 
-        self.retranslateUi(MainWindow)
+        self.retranslate_UI(MainWindow)
         self.stackedWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, MainWindow):
+    def retranslate_UI(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "Password Manager"))
         self.newAccountButton.setText(_translate("MainWindow", "Create Account"))
@@ -196,7 +196,7 @@ class GUI(UserInterface):
         self.label_9.setText(_translate("MainWindow", "Account Name"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
 
-    def Popup(self, text, type="warning"):
+    def popup(self, text, type="warning"):
         self.popup.setText(text)
         if type == "warning":
             self.popup.setIcon(QMessageBox.Warning)
@@ -205,7 +205,7 @@ class GUI(UserInterface):
         self.popup.exec_()
 
     def display_menu(self):
-        self.setupUi(self.window)
+        self.setup_UI(self.window)
         self.window.show()
         sys.exit(self.app.exec_())
 
@@ -224,8 +224,8 @@ class GUI(UserInterface):
             # User Account Name
             self.accountNameTitle.setText(self.username)
         else:
-            #Create popup window woth alerts
-            self.Popup("Invalid Credentials!")
+            # Create popup window woth alerts
+            self.popup("Invalid Credentials!")
 
     def create_account(self):
         self.username = self.usernameInput.text()
@@ -238,7 +238,7 @@ class GUI(UserInterface):
             self.change_window(1)
         else:
             # Create popup window with alerts
-            self.Popup("Username unavailable")
+            self.popup("Username unavailable")
 
     def get_account(self):
         account = self.accountInput.text()
@@ -247,28 +247,29 @@ class GUI(UserInterface):
 
         if response:
             response = response.split("|^|")
-            #Insert result in labesls
+            # Insert result in labesls
             self.getUsernameLabel.setText(response[0])
             self.getPasswordLabel.setText(response[1])
         else:
-            #Popup window indicating account not founf
-            self.Popup("Account not found!")
+            # Popup window indicating account not founf
+            self.popup("Account not found!")
 
     def add_account(self):
         validated = False
         account = self.accountInput.text()
         if account != "":
-            args = {"user": self.username, "pwd": self.password, "account": account, "usersub": self.addUsernameInput.text(),
+            args = {"user": self.username, "pwd": self.password, "account": account,
+                    "usersub": self.addUsernameInput.text(),
                     "pwdsub": self.addPasswordInput.text()}
             validated = self.client.send_command("newsub", **args)
 
         if validated:
             # Popup indicating success
-            self.Popup("Credentials Saved!", "success")
+            self.popup("Credentials Saved!", "success")
             self.clear_labels()
         else:
             # Popup indicating failure
-            self.Popup("Account already exists!")
+            self.popup("Account already exists!")
 
         # Clean all labels
         self.clear_labels()

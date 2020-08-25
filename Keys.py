@@ -5,7 +5,6 @@ from base64 import urlsafe_b64encode as b64e, urlsafe_b64decode as b64d
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 
-
 class Keys:
 
     def __init__(self):

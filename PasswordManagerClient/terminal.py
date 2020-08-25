@@ -1,12 +1,18 @@
+import sys
+sys.path.append("..")
 from utils import *
-from UserInterface import UserInterface
+from PasswordManagerClient.UserInterface import UserInterface
 
+def menu_display(func):
+    def inner():
+        func()
+        print("0. Quit\n")
+    return inner
 
+@menu_display
 def build_menu(current_menu):
     for key in current_menu:
         print("{}. {}".format(key, single_dict_key(current_menu[key])))
-    print("0. Quit\n")
-
 
 class TerminalMenu(UserInterface):
     def __init__(self):

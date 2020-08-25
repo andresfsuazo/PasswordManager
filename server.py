@@ -1,11 +1,13 @@
 # Python program to implement server side of chat room.
 import socket
-from _thread import *
+try:
+    import thread
+except ImportError:
+    import _thread as thread
 import json
 from os import path
 from utils import *
 from Keys import Keys
-
 
 class Server:
 
@@ -13,28 +15,29 @@ class Server:
         self.keys = Keys()
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        # takes the first argument from command prompt as IP address
-        IP_address = "127.0.0.1"
-        # takes second argument from command prompt as port number
-        Port = 65432
+        IP_address = "localhost"
+        Port = 8000
+        #Port = 7788
         # Binds the server to IP and Port
         self.server.bind((IP_address, Port))
         # Set a max of 10 connections
         self.server.listen(10)
         self.clientList = []
         self.accounts = {}
+        self.load_users()
 
+    def load_users(self):
         if path.exists('accounts.json'):
             self.accounts = json.load(open('accounts.json'))
         else:
             with open("accounts.json", "w") as file:
                 json.dump(self.accounts, file, indent=4)
 
-    def SaveUsers(self):
+    def save_users(self):
         with open("accounts.json", "w") as file:
             json.dump(self.accounts, file, indent=4)
 
-    def clientthread(self, conn, addr):
+    def client_thread(self, conn, addr):
         # sends a message to the client whose user object is conn
         # message = "Connected to password manager"
         # conn.sendall(message.encode())
@@ -53,7 +56,8 @@ class Server:
                     self.remove(conn, addr[0])
                     break
 
-            except ConnectionError:
+            #except ConnectionError
+            except:
                 print("Connection Error")
                 self.remove(conn, addr[0])
                 break
@@ -121,7 +125,7 @@ class Server:
         password = key
         password = password.decode()
         self.accounts[user] = {"password": password, "salt": salt.decode(), "accounts": {}}
-        self.SaveUsers()
+        self.save_users()
         return True
 
     def create_sub(self, user, pwd, account, usersub, pwdsub):
@@ -133,7 +137,7 @@ class Server:
         salt = new_salt()  # Create salt
         pwdsub = self.keys.encrypt_account(salt, pwd, pwdsub)
         self.accounts[user]["accounts"][account] = {"username": usersub, "password": pwdsub.decode()}
-        self.SaveUsers()
+        self.save_users()
         return True
 
     def get_sub(self, user, account, pwd):
@@ -146,7 +150,7 @@ class Server:
 
             # decrypt password
             password = self.keys.decrypt_account(pwd, password)
-            return username+"|^|"+password.decode()
+            return username + "|^|" + password.decode()
         else:
             return False
 
@@ -156,17 +160,8 @@ def main():
     while True:
         conn, addr = server.server.accept()
         server.clientList.append(conn)
-
-        # prints the address of the user that just connected
         print(addr[0] + " connected")
-
-        # creates and individual thread for every user
-        # that connects
-        start_new_thread(server.clientthread, (conn, addr))
-
-    conn.close()
-    server.close()
-
+        thread.start_new_thread(server.client_thread, (conn, addr))  # Each connected user represents a thread
 
 if __name__ == '__main__':
     main()
