@@ -1,0 +1,11 @@
+Core
+
+1) Dropdown list with all available accounts
+2) Logout from current account
+
+* Decrypt in Client not on Server
+* Server should only generate and store account names and salts
+
+Extras
+
+1)

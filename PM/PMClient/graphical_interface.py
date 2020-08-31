@@ -13,8 +13,6 @@ class GUI(UserInterface):
         self.Auth = QtWidgets.QWidget()
         self.Home = QtWidgets.QWidget()
         self.popup = QtWidgets.QMessageBox()
-        self.accountInput = QtWidgets.QLineEdit(self.Home)
-        self.browseButton = QtWidgets.QPushButton(self.Home)
         self.accountNameTitle = QtWidgets.QLabel(self.Home)
         self.usernameInput = QtWidgets.QLineEdit(self.Auth)
         self.passwordInput = QtWidgets.QLineEdit(self.Auth)
@@ -30,6 +28,7 @@ class GUI(UserInterface):
         self.addUsernameInput = QtWidgets.QLineEdit(self.verticalLayoutWidget_3)
         self.addPasswordInput = QtWidgets.QLineEdit(self.verticalLayoutWidget_3)
         self.newAccountButton = QtWidgets.QPushButton(self.Auth)
+        self.comboBox = QtWidgets.QComboBox(self.Home)
 
     def setup_UI(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -96,18 +95,6 @@ class GUI(UserInterface):
         self.accountNameTitle.setAlignment(QtCore.Qt.AlignCenter)
         self.accountNameTitle.setObjectName("accountNameTitle")
         # -------------------------------------------------------------------------
-        # Account Name Input
-        self.accountInput.setGeometry(QtCore.QRect(150, 100, 341, 31))
-        self.accountInput.setObjectName("accountInput")
-        self.accountInput.textChanged.connect(self.clear_labels)
-        # -------------------------------------------------------------------------
-        # Browse Accounts Button
-        self.browseButton.setGeometry(QtCore.QRect(510, 100, 61, 31))
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        self.browseButton.setFont(font)
-        self.browseButton.setObjectName("browseButton")
-        # -------------------------------------------------------------------------
         self.verticalLayoutWidget.setGeometry(QtCore.QRect(30, 180, 251, 204))
         self.verticalLayoutWidget.setObjectName("verticalLayoutWidget")
         # -------------------------------------------------------------------------
@@ -157,6 +144,11 @@ class GUI(UserInterface):
         font.setPointSize(10)
         self.label_9.setFont(font)
         self.label_9.setObjectName("label_9")
+        # -------------------------------------------------------------------------
+        self.comboBox.setGeometry(QtCore.QRect(140, 100, 381, 31))
+        self.comboBox.setEditable(True)
+        self.comboBox.setObjectName("comboBox")
+        # -------------------------------------------------------------------------
         self.stackedWidget.addWidget(self.Home)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -182,7 +174,6 @@ class GUI(UserInterface):
         self.loginButton.setText(_translate("MainWindow", "Login"))
         self.label.setText(_translate("MainWindow", "Username"))
         self.label_2.setText(_translate("MainWindow", "Password"))
-        self.browseButton.setText(_translate("MainWindow", "Browse"))
         self.accountNameTitle.setText(_translate("MainWindow", "Password Manager"))
         self.getCredentialsButton.setText(_translate("MainWindow", "Get Credentials"))
         self.label_7.setText(_translate("MainWindow", "Username"))
@@ -215,7 +206,6 @@ class GUI(UserInterface):
         h = self.window.frameGeometry().height()
         x,y = self.window.pos().x() + w/2, self.window.pos().y() + h/2
 
-
         return (x,y)
 
     def change_window(self, win_num):
@@ -232,9 +222,21 @@ class GUI(UserInterface):
             self.change_window(1)
             # User Account Name
             self.accountNameTitle.setText(self.username)
+            self.Load_Accounts()
         else:
             # Create popup window woth alerts
             self.display_alert("Invalid Credentials!")
+
+    def Load_Accounts(self):
+        args = {"user": self.username}
+        response = self.client.send_command("getall", **args)
+
+        if response:
+            response = response.split("|^|")
+            # Insert result in labesls
+            self.updateAccountList(response)
+        else:
+            print("No accounts found!")
 
     def create_account(self):
         self.username = self.usernameInput.text()
@@ -250,7 +252,7 @@ class GUI(UserInterface):
             self.display_alert("Username unavailable")
 
     def get_account(self):
-        account = self.accountInput.text()
+        account = str(self.comboBox.currentText())
         args = {"user": self.username, "pwd": self.password, "account": account}
         response = self.client.send_command("getsub", **args)
 
@@ -265,7 +267,7 @@ class GUI(UserInterface):
 
     def add_account(self):
         validated = False
-        account = self.accountInput.text()
+        account = str(self.comboBox.currentText())
         if account != "":
             args = {"user": self.username, "pwd": self.password, "account": account,
                     "usersub": self.addUsernameInput.text(),
@@ -288,3 +290,7 @@ class GUI(UserInterface):
         self.getUsernameLabel.clear()
         self.addPasswordInput.clear()
         self.addUsernameInput.clear()
+
+    def updateAccountList(self, items):
+        self.comboBox.clear()
+        self.comboBox.addItems(items)

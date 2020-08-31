@@ -91,6 +91,10 @@ class Server:
             validated = self.get_sub(kwargs["user"], kwargs["account"], kwargs["pwd"])
             print("Account Sent: " + kwargs["user"] + " -> " + str(validated))
             if validated != False: return validated
+        elif cmd == "getall":
+            validated = self.get_all(kwargs["user"])
+            print("Account Sent: " + kwargs["user"] + " -> " + str(validated))
+            if validated != False: return validated
 
         print(validated)
         if validated:
@@ -144,3 +148,13 @@ class Server:
             return username + "|^|" + password.decode()
         else:
             return False
+
+    def get_all(self, user):
+        """Retrieves a list of all users accounts"""
+        accounts = [account for account in self.accounts[user]["accounts"]]
+        to_return = ""
+
+        for i in accounts:
+            to_return += i + "|^|"
+
+        return to_return
