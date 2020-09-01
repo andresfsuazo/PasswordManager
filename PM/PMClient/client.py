@@ -1,5 +1,6 @@
 # Python program to implement client side of chat room.
 import socket
+import pickle
 
 '''
 Sends requests to server
@@ -25,19 +26,19 @@ class Client:
         self.server.close()
 
     def send_command(self, cmd, **kwargs):
-        one = cmd
-        # Send arguments
-        for i in kwargs:
-            one += "|^|" + i
-            one += "|^|" + kwargs[i]
-        self.server.sendall(one.encode())
+        # Send command and arguments as dictionary
+        message = {"command": cmd}
+        for key in kwargs:
+            message[key] = kwargs[key]
 
+        # Send pickled data to server
+        message = pickle.dumps(message)
+        self.server.sendall(message)
+
+        # Get response from server
         response = self.receive_response()
-        if response not in ("0", "1"):
-            return response
-        else:
-            return True if response == "1" else False
+        return response
 
     def receive_response(self):
-        message = self.server.recv(2048)
-        return message.decode()
+        message = self.server.recv(4096)
+        return pickle.loads(message)

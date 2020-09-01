@@ -1,5 +1,6 @@
 # Python program to implement server side of chat room.
 import socket
+import pickle
 import json
 from os import path
 from .keys import Keys
@@ -40,14 +41,15 @@ class Server:
         # conn.sendall(message.encode())
         while True:
             try:
-                command = conn.recv(2048)
-                command = command.decode()
-                if command:
-                    execute = command.split("|^|")
-                    args = {execute[i]: execute[i + 1] for i in range(1, len(execute), 2)}
-                    message = self.commands(execute[0], **args)
-                    print("to return = ", message)
-                    conn.sendall(message.encode())
+                # Receive pickled data from client
+                data = conn.recv(4096)
+                data = pickle.loads(data)
+                if data:
+                    command = data.pop("command")
+                    message = self.commands(command, **data)  # Execute a specific function
+                    print("To return: ", message)
+                    message = pickle.dumps(message)  # Pickle and send message to client
+                    conn.sendall(message)
                 else:
                     print("Empty message sent to server")
                     self.remove(conn, addr[0])
@@ -77,6 +79,7 @@ class Server:
 
     def commands(self, cmd, **kwargs):
         validated = False
+
         if cmd == "login":
             validated = self.log_in(kwargs["user"], kwargs["pwd"])
             print("Log In Attempt: " + kwargs["user"] + " - " + str(validated))
@@ -90,17 +93,11 @@ class Server:
         elif cmd == "getsub":
             validated = self.get_sub(kwargs["user"], kwargs["account"], kwargs["pwd"])
             print("Account Sent: " + kwargs["user"] + " -> " + str(validated))
-            if validated != False: return validated
         elif cmd == "getall":
             validated = self.get_all(kwargs["user"])
-            print("Account Sent: " + kwargs["user"] + " -> " + str(validated))
-            if validated != False: return validated
+            print("Accounts Loaded: " + kwargs["user"])
 
-        print(validated)
-        if validated:
-            return "1"
-        else:
-            return "0"
+        return validated
 
     def log_in(self, user, pwd):
         """Login to an existing account"""
@@ -145,16 +142,10 @@ class Server:
 
             # decrypt password
             password = self.keys.decrypt_account(pwd, password)
-            return username + "|^|" + password.decode()
+            return [username, password.decode()]
         else:
             return False
 
     def get_all(self, user):
         """Retrieves a list of all users accounts"""
-        accounts = [account for account in self.accounts[user]["accounts"]]
-        to_return = ""
-
-        for i in accounts:
-            to_return += i + "|^|"
-
-        return to_return
+        return [account for account in self.accounts[user]["accounts"]]

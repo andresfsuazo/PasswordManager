@@ -1,16 +1,1 @@
-{
-    "andres": {
-        "password": "bpKnBHhr-54c-rHjBVwMVQT7oda5h6StFvWeJKOTLNc=",
-        "salt": "351c9c4ffcd67b49c73124c5ec5f2619",
-        "accounts": {
-            "mail": {
-                "username": "maily",
-                "password": "ZWFlZmIxM2IwMTYxOTkyNDIwYWRiZjJmNjhjZjQ3OWEAAYaggAAAAABfJZsDHzmGob0_NuKyz0epCshX3anvThwNDlf66diNl4qz64sMX0lfpIfyZy6XIpsG6WK81sTUMx0D71xXRO_VcLQS_Q=="
-            },
-            "google": {
-                "username": "andy",
-                "password": "MGY5NzU0MTg4OGQ5MTllOGU1ZDNhNzNjMTEyNzE2MjIAAYaggAAAAABfRWND0pghASyPMXsoguMWevyYCv5FXhjGzf8ojklBCEhh5bNHdYjHu73M5scBEPGGUP29V5PGqnE3FqecJ744BaM8cQ=="
-            }
-        }
-    }
-}
+{}

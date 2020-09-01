@@ -148,6 +148,7 @@ class GUI(UserInterface):
         self.comboBox.setGeometry(QtCore.QRect(140, 100, 381, 31))
         self.comboBox.setEditable(True)
         self.comboBox.setObjectName("comboBox")
+        self.comboBox.currentTextChanged.connect(self.clear_labels)
         # -------------------------------------------------------------------------
         self.stackedWidget.addWidget(self.Home)
         MainWindow.setCentralWidget(self.centralwidget)
@@ -186,12 +187,12 @@ class GUI(UserInterface):
         self.label_9.setText(_translate("MainWindow", "Account Name"))
         self.menuFile.setTitle(_translate("MainWindow", "File"))
 
-    def display_alert(self, text, type="warning"):
+    def display_alert(self, text, alertType="warning"):
         self.popup.setText(text)
         self.popup.setGeometry(self.get_window_center()[0], self.get_window_center()[1], 100, 100)
-        if type == "warning":
+        if alertType == "warning":
             self.popup.setIcon(QMessageBox.Warning)
-        elif type == "success":
+        elif alertType == "success":
             self.popup.setIcon(QMessageBox.Information)
         self.popup.exec_()
 
@@ -214,6 +215,7 @@ class GUI(UserInterface):
     def login(self):
         self.username = self.usernameInput.text()
         self.password = self.passwordInput.text()
+
         args = {"user": self.username, "pwd": self.password}
         logged_in = self.client.send_command("login", **args)
 
@@ -224,7 +226,7 @@ class GUI(UserInterface):
             self.accountNameTitle.setText(self.username)
             self.Load_Accounts()
         else:
-            # Create popup window woth alerts
+            # Create popup window with alerts
             self.display_alert("Invalid Credentials!")
 
     def Load_Accounts(self):
@@ -232,8 +234,7 @@ class GUI(UserInterface):
         response = self.client.send_command("getall", **args)
 
         if response:
-            response = response.split("|^|")
-            # Insert result in labesls
+            # Insert result in labels
             self.updateAccountList(response)
         else:
             print("No accounts found!")
@@ -241,6 +242,10 @@ class GUI(UserInterface):
     def create_account(self):
         self.username = self.usernameInput.text()
         self.password = self.passwordInput.text()
+
+        if not self.username or not self.password:
+            return
+
         args = {"user": self.username, "pwd": self.password}
         logged_in = self.client.send_command("new", **args)
 
@@ -257,7 +262,6 @@ class GUI(UserInterface):
         response = self.client.send_command("getsub", **args)
 
         if response:
-            response = response.split("|^|")
             # Insert result in labesls
             self.getUsernameLabel.setText(response[0])
             self.getPasswordLabel.setText(response[1])
@@ -268,16 +272,22 @@ class GUI(UserInterface):
     def add_account(self):
         validated = False
         account = str(self.comboBox.currentText())
-        if account != "":
-            args = {"user": self.username, "pwd": self.password, "account": account,
-                    "usersub": self.addUsernameInput.text(),
-                    "pwdsub": self.addPasswordInput.text()}
-            validated = self.client.send_command("newsub", **args)
+
+        # Return if user leaves empty values
+        if not self.addUsernameInput.text() or not self.addPasswordInput.text() or not account:
+            return
+
+        args = {"user": self.username, "pwd": self.password, "account": account,
+                "usersub": self.addUsernameInput.text(),
+                "pwdsub": self.addPasswordInput.text()}
+
+        validated = self.client.send_command("newsub", **args)
 
         if validated:
             # Popup indicating success
             self.display_alert("Credentials Saved!", "success")
             self.clear_labels()
+            self.Load_Accounts()
         else:
             # Popup indicating failure
             self.display_alert("Account already exists!")
